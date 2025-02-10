@@ -144,18 +144,60 @@
 
                 if (data.status === 200) {
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = `
-                        <h3>${data.name}</h3>
-                        <p>歌手：${data.ar_name}</p>
-                        <p>专辑：${data.al_name}</p>
-                        <p>音质：${data.level}</p>
-                        <p>大小：${data.size}</p>
-                        <img src="${data.pic}" alt="专辑封面" style="max-width: 200px;">
-                        <br>
-                        <button onclick="downloadMusic('${ids}', '${level}')" class="download-btn">
-                            下载音乐
-                        </button>
-                    `;
+                    
+                    if (data.songs) {
+                        // 添加批量下载按钮
+                        resultDiv.innerHTML = `
+                            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <button onclick="selectAll()" class="download-btn">全选</button>
+                                    <button onclick="deselectAll()" class="download-btn">取消全选</button>
+                                </div>
+                                <button onclick="batchDownload('${level}')" class="download-btn">批量下载所选</button>
+                            </div>
+                            <div id="songList">
+                                ${data.songs.map(song => `
+                                    <div style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; display: flex; gap: 20px;">
+                                        <input type="checkbox" class="song-checkbox" value="${song.id}" style="margin: auto 0;">
+                                        <div style="flex-shrink: 0;">
+                                            <img src="${song.pic}" alt="专辑封面" style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px;">
+                                        </div>
+                                        <div style="flex-grow: 1;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                                <h3 style="margin: 0;">${song.name}</h3>
+                                                <button onclick="downloadMusic('${song.id}', '${level}')" class="download-btn" style="margin: 0;">
+                                                    下载音乐
+                                                </button>
+                                            </div>
+                                            <p style="margin: 5px 0;">歌手：${song.ar_name}</p>
+                                            <p style="margin: 5px 0;">专辑：${song.al_name}</p>
+                                            <p style="margin: 5px 0;">音质：${song.level} | 大小：${song.size}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>`;
+                    } else {
+                        // 单曲情况
+                        resultDiv.innerHTML = `
+                            <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px; display: flex; gap: 20px;">
+                                <div style="flex-shrink: 0;">
+                                    <img src="${data.pic}" alt="专辑封面" style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px;">
+                                </div>
+                                <div style="flex-grow: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <h3 style="margin: 0;">${data.name}</h3>
+                                        <button onclick="downloadMusic('${data.id}', '${level}')" class="download-btn" style="margin: 0;">
+                                            下载音乐
+                                        </button>
+                                    </div>
+                                    <p style="margin: 5px 0;">歌曲ID：${data.id}</p>
+                                    <p style="margin: 5px 0;">歌手：${data.ar_name}</p>
+                                    <p style="margin: 5px 0;">专辑：${data.al_name}</p>
+                                    <p style="margin: 5px 0;">音质：${data.level} | 大小：${data.size}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
                 } else {
                     resultDiv.innerHTML = `<p style="color: red;">获取信息失败：${data.msg || '未知错误'}</p>`;
                 }
@@ -214,6 +256,52 @@
                 }, 2000);
             }
         }
+
+// 添加新的函数到 script 标签中
+function selectAll() {
+    document.querySelectorAll('.song-checkbox').forEach(checkbox => checkbox.checked = true);
+}
+
+function deselectAll() {
+    document.querySelectorAll('.song-checkbox').forEach(checkbox => checkbox.checked = false);
+}
+
+async function batchDownload(level) {
+    const selectedIds = Array.from(document.querySelectorAll('.song-checkbox:checked')).map(cb => cb.value);
+    if (selectedIds.length === 0) {
+        alert('请至少选择一首歌曲');
+        return;
+    }
+
+    const progressContainer = document.getElementById('progressContainer');
+    const progressText = document.getElementById('progressText');
+    progressContainer.style.display = 'block';
+    progressText.textContent = '准备下载...';
+
+    try {
+        const response = await fetch(`/Song_V1?type=batchDown&level=${level}&selectedIds=${JSON.stringify(selectedIds)}`);
+        if (!response.ok) throw new Error('下载失败');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'songs.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        progressText.textContent = '下载完成！';
+    } catch (error) {
+        console.error('批量下载出错:', error);
+        progressText.textContent = '下载失败，请重试';
+    }
+
+    setTimeout(() => {
+        progressContainer.style.display = 'none';
+    }, 2000);
+}
     </script>
 </body>
 </html>

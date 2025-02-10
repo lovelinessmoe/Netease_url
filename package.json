@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^7.0.1",
     "axios": "^1.7.9",
     "commander": "^13.1.0",
     "crypto": "^1.0.1",
