@@ -122,6 +122,14 @@
     </form>
     <div id="result"></div>
 
+    <!-- 添加进度条容器 -->
+    <div id="progressContainer" class="progress-container">
+        <div id="progressText" class="progress-text">准备下载...</div>
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+    </div>
+
     <script>
         document.getElementById('musicForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -166,35 +174,28 @@
                 progressText.textContent = '开始下载...';
                 progressFill.style.width = '0%';
 
+                // 使用普通的 fetch 请求下载文件
                 const response = await fetch(`/Song_V1?ids=${encodeURIComponent(ids)}&level=${level}&type=down`);
                 if (!response.ok) throw new Error('下载失败');
-                
-                const reader = response.body.getReader();
-                const contentLength = +response.headers.get('Content-Length');
-                
-                let receivedLength = 0;
-                const chunks = [];
 
-                while(true) {
-                    const {done, value} = await reader.read();
-                    
-                    if (done) break;
-                    
-                    chunks.push(value);
-                    receivedLength += value.length;
-                    
-                    const progress = (receivedLength / contentLength) * 100;
-                    progressFill.style.width = `${progress}%`;
-                    progressText.textContent = `下载中... ${Math.round(progress)}%`;
+                // 从响应头中获取文件名
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'download.mp3';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename\*=UTF-8''(.+)/i);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = decodeURIComponent(filenameMatch[1]);
+                    }
                 }
 
-                progressText.textContent = '处理文件中...';
+                // 直接获取二进制数据
+                const blob = await response.blob();
                 
-                const blob = new Blob(chunks);
+                // 创建下载链接并触发下载
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${document.querySelector('#result h3').textContent}.mp3`;
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);

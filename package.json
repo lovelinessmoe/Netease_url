@@ -19,6 +19,7 @@
     "express": "^4.21.2",
     "ffmetadata": "^1.7.0",
     "fluent-ffmpeg": "^2.1.3",
+    "node-id3tag": "^0.9.8",
     "temp-write": "^6.0.0"
   },
   "devDependencies": {

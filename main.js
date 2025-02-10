@@ -6,10 +6,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { URLSearchParams } from 'url';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmetadata from 'ffmetadata';
 import tempWrite from 'temp-write';
-
+// 在文件顶部添加 node-id3 导入
+import NodeID3tag from 'node-id3tag';
 // 获取 __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -227,17 +226,15 @@ app.all('/Song_V1', async (req, res) => {
 
         if (type === 'text') {
             res.send(`歌曲名称：${songData.name}<br>歌曲图片：${songData.pic}<br>歌手：${songData.ar_name}<br>歌曲专辑：${songData.al_name}<br>歌曲音质：${songData.level}<br>歌曲大小：${songData.size}<br>音乐地址：${songData.url}`);
+        // 在 app.all('/Song_V1') 路由中，找到 type === 'down' 的部分，修改如下：
+        // 在 type === 'down' 的部分，修改如下
         } else if (type === 'down') {
             try {
                 // 下载音乐文件
                 const musicResponse = await axios({
                     method: 'get',
                     url: songData.url,
-                    responseType: 'arraybuffer',
-                    onDownloadProgress: (progressEvent) => {
-                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        res.write(`data: ${JSON.stringify({ progress, status: 'downloading' })}\n\n`);
-                    }
+                    responseType: 'arraybuffer'
                 });
         
                 // 从 URL 中获取文件扩展名
@@ -251,63 +248,100 @@ app.all('/Song_V1', async (req, res) => {
                     .trim();
         
                 const fileName = `${sanitizedName}${fileExt}`;
-        
-                // 设置 SSE 头
-                res.writeHead(200, {
-                    'Content-Type': 'text/event-stream',
-                    'Cache-Control': 'no-cache',
-                    'Connection': 'keep-alive'
-                });
-        
-                // 发送开始下载消息
-                res.write(`data: ${JSON.stringify({ status: 'start', fileName })}\n\n`);
-        
+                
                 // 创建带扩展名的临时文件
                 const tempFile = await tempWrite(musicResponse.data, `temp${fileExt}`);
         
-                // 准备元数据
-                const metadata = {
+                // 准备 ID3 标签
+                const tags = {
+                    // 基本信息
                     title: songData.name,
                     artist: songData.ar_name,
                     album: songData.al_name,
-                    comment: `音质: ${songData.level}`
+                    trackNumber: namev1.songs[0].no.toString(),  // 专辑中的曲目编号
+                    year: new Date(namev1.songs[0].publishTime || Date.now()).getFullYear().toString(),
+                    size: songData.size,
                 };
-        
-                // 发送处理中消息
-                res.write(`data: ${JSON.stringify({ status: 'processing' })}\n\n`);
-        
-                // 写入元数据
-                await new Promise((resolve, reject) => {
-                    ffmetadata.write(tempFile, metadata, {}, function(err) {
-                        if (err) {
-                            console.error('Metadata write error:', err);
-                            // 如果写入元数据失败，发送错误消息
-                            res.write(`data: ${JSON.stringify({ status: 'error', message: '元数据写入失败' })}\n\n`);
-                            reject(err);
-                        } else {
-                            // 读取处理后的文件
-                            fs.readFile(tempFile, (readErr, data) => {
-                                if (readErr) {
-                                    res.write(`data: ${JSON.stringify({ status: 'error', message: '文件读取失败' })}\n\n`);
-                                    reject(readErr);
-                                } else {
-                                    // 发送完成消息
-                                    res.write(`data: ${JSON.stringify({ status: 'complete', fileName })}\n\n`);
-                                    res.end();
-                                    resolve();
-                                }
-                            });
+
+                // 如果有翻译歌词，将中英文合并
+                if (lyricv1.tlyric?.lyric) {
+                    // 创建一个Map来存储时间戳和对应的英文歌词
+                    const lrcMap = new Map();
+                    const originalLyrics = lyricv1.lrc.lyric.split('\n');
+                    
+                    // 先处理作词作曲信息
+                    const headerLines = originalLyrics
+                        .filter(line => line.startsWith('[00:00.00]') || line.startsWith('[00:01.00]'));
+                    
+                    // 处理其余歌词
+                    originalLyrics.forEach(line => {
+                        const match = line.match(/^\[(\d{2}:\d{2}\.\d{2})\](.*)/);
+                        if (match) {
+                            lrcMap.set(match[1], match[2]);
                         }
                     });
-                });
+
+                    // 合并歌词，先添加作词作曲信息
+                    const combinedLyrics = [
+                        ...headerLines,
+                        ...lyricv1.tlyric.lyric.split('\n').map(line => {
+                            const match = line.match(/^\[(\d{2}:\d{2}\.\d{2})\](.*)/);
+                            if (match && lrcMap.has(match[1])) {
+                                const englishLyric = lrcMap.get(match[1]).trim();
+                                const chineseLyric = match[2].trim();
+                                return `[${match[1]}]${englishLyric} ${chineseLyric}`;
+                            }
+                            return line;
+                        })
+                    ].join('\n');
+
+                    tags.unsynchronisedLyrics = {
+                        language: "chi",
+                        text: combinedLyrics
+                    };
+                }
+
+                // 如果有封面图片的处理保持不变...
+                if (songData.pic) {
+                    try {
+                        const imageResponse = await axios.get(songData.pic, {
+                            responseType: 'arraybuffer'
+                        });
+                        const tempImagePath = await tempWrite(imageResponse.data, 'cover.jpg');
+                        tags.APIC = tempImagePath;
+                    } catch (error) {
+                        console.error('封面下载失败:', error);
+                    }
+                }
+        
+                // 写入 ID3 标签
+                try {
+                    const success = NodeID3tag.write(tags, tempFile);
+                    
+                    if (success) {
+                        // 读取处理后的文件
+                        const finalData = fs.readFileSync(tempFile);
+                        
+                        // 设置响应头
+                        res.setHeader('Content-Type', 'application/octet-stream');
+                        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+                        
+                        // 发送文件
+                        res.end(finalData);
+                    } else {
+                        throw new Error('标签写入失败');
+                    }
+                } catch (error) {
+                    console.error('标签写入错误:', error);
+                    res.status(500).json({ error: '标签写入失败' });
+                }
         
                 // 清理临时文件
                 fs.unlink(tempFile, () => {});
         
             } catch (error) {
                 console.error('Download error:', error);
-                res.write(`data: ${JSON.stringify({ status: 'error', message: '下载出错' })}\n\n`);
-                res.end();
+                res.status(500).json({ error: '下载出错' });
             }
         } else if (type === 'json') {
             res.json({
