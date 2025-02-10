@@ -75,3 +75,7 @@ node main.js --mode gui --url [音乐链接] --level [音质]
 
 ## License
 MIT License
+
+## 参考
+基于[Netease_url](https://github.com/Suxiaoqinx/Netease_url)修改为nodejs的版本
+使用Trae进行代码生成 ，本程序完全由AI实现包括Python转Node以及需求通知
