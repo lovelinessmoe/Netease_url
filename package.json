@@ -1,19 +1,22 @@
 {
   "name": "netease_url",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
+  "description": "网易云音乐下载器",
+  "main": "electron.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node main.js",
-    "dev": "nodemon main.js"
+    "dev": "nodemon main.js",
+    "electron:start": "electron .",
+    "electron:build": "electron-builder"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "archiver": "^7.0.1",
+    "archiver-utils": "^4.0.1",
     "axios": "^1.7.9",
     "commander": "^13.1.0",
     "crypto": "^1.0.1",
@@ -21,9 +24,62 @@
     "ffmetadata": "^1.7.0",
     "fluent-ffmpeg": "^2.1.3",
     "node-id3tag": "^0.9.8",
-    "temp-write": "^6.0.0"
+    "temp-write": "^6.0.0",
+    "zip-stream": "^5.0.1"
+  },
+  "build": {
+    "appId": "com.netease.url",
+    "productName": "网易云音乐下载器",
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "网易云音乐下载器"
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/",
+        "to": "node_modules/",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ]
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "electron": "^34.1.1",
+    "electron-builder": "^25.1.8"
   }
 }

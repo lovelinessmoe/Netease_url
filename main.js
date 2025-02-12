@@ -68,7 +68,7 @@ const parsePlaylist = async (url, cookies) => {
 
         const songIds = [];
         const songList = response.data;
-        
+
         // 使用新的正则表达式匹配移动版网页中的歌曲ID
         const regex = /\/\/music\.163\.com\/m\/song\?id=(\d+)/g;
         let match;
@@ -101,7 +101,7 @@ const parseIds = async (ids) => {
     if (ids.includes('music.163.com')) {
         // 移除 #/ 
         ids = ids.replace('#/', '');
-        
+
         if (ids.includes('/playlist?')) {
             // 如果是歌单链接，解析整个歌单
             const cookies = parseCookie(readCookie());
@@ -215,16 +215,7 @@ const getLyricV1 = async (id, cookies) => {
     return response.data;
 };
 
-// Express 应用
-const app = express();
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'templates', 'index.html'));
-});
-
-app.all('/Song_V1', async (req, res) => {
+const Song_V1 = async (req, res) => {
     try {
         const { ids, url, level, type } = req.query;
         const selectedIds = req.query.selectedIds ? JSON.parse(req.query.selectedIds) : null;
@@ -346,7 +337,7 @@ app.all('/Song_V1', async (req, res) => {
                 await new Promise((resolve, reject) => {
                     output.on('close', resolve);
                     output.on('error', reject);
-                    
+
                     archive.pipe(output);
                     files.forEach(file => {
                         archive.file(file.path, { name: file.name });
@@ -357,12 +348,12 @@ app.all('/Song_V1', async (req, res) => {
                 // 发送 ZIP 文件
                 res.download(zipFile, 'songs.zip', () => {
                     // 清理临时文件
-                    files.forEach(file => fs.unlink(file.path, () => {}));
-                    fs.rm(tempDir, { recursive: true }, () => {});
+                    files.forEach(file => fs.unlink(file.path, () => { }));
+                    fs.rm(tempDir, { recursive: true }, () => { });
                 });
                 return;
             } catch (error) {
-                fs.rm(tempDir, { recursive: true }, () => {});
+                fs.rm(tempDir, { recursive: true }, () => { });
                 throw error;
             }
         }
@@ -565,6 +556,19 @@ app.all('/Song_V1', async (req, res) => {
         console.error(error);
         res.status(500).json({ status: 500, msg: '服务器错误' });
     }
+}
+
+// Express 应用
+const app = express();
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'templates', 'index.html'));
+});
+
+app.all('/Song_V1', async (req, res) => {
+    Song_V1(req, res);
 });
 
 // CLI 功能
@@ -618,4 +622,30 @@ if (options.mode === 'api') {
     startApi();
 } else if (options.mode === 'gui') {
     startGui(options.url, options.level);
+}
+
+
+export function configureApp(app) {
+    app.use(express.static('public'));
+    app.use(express.urlencoded({ extended: true }));
+
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, 'templates', 'index.html'));
+    });
+
+    app.all('/Song_V1', async (req, res) => {
+        Song_V1(req, res);
+    });
+
+    return app;
+}
+
+// For standalone Node.js execution
+if (import.meta.url === `file://${process.argv[1]}`) {
+    const app = express();
+    configureApp(app);
+    const port = 15001;
+    app.listen(port, '0.0.0.0', () => {
+        console.log(`Server running at http://0.0.0.0:${port}`);
+    });
 }
