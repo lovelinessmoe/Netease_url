@@ -37,7 +37,7 @@ async function createWindow() {
   await mainWindow.loadURL('http://127.0.0.1:15001');
   
   // 打开开发者工具
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function () {
     mainWindow = null;

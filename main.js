@@ -40,7 +40,7 @@ const parseCookie = (text) => {
 };
 
 const readCookie = () => {
-    const cookiePath = path.join(__dirname, 'cookie.txt');
+    const cookiePath = path.join(os.homedir(), 'NeteaseCookie.txt');
     return fs.readFileSync(cookiePath, 'utf-8');
 };
 
@@ -603,7 +603,7 @@ const startGui = async (url, level = 'lossless') => {
 };
 
 const startApi = () => {
-    const port = 15001;
+    const port = 15002;
     app.listen(port, '0.0.0.0', () => {
         console.log(`服务器运行在 http://0.0.0.0:${port}`);
     });
