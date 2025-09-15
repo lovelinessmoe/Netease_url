@@ -104,18 +104,18 @@
     <form id="musicForm">
         <div class="form-group">
             <label for="ids">音乐ID或链接：</label>
-            <input type="text" id="ids" name="ids" placeholder="输入音乐ID或网易云音乐链接">
+            <input type="text" id="ids" name="ids" placeholder="输入音乐ID或网易云音乐链接" value="https://music.163.com/playlist?id=362613622">
         </div>
         <div class="form-group">
             <label for="level">音质选择：</label>
             <select id="level" name="level">
                 <option value="standard">标准音质</option>
                 <option value="exhigh">极高音质</option>
-                <option value="lossless" selected>无损音质</option>
+                <option value="lossless">无损音质</option>
                 <option value="hires">Hires音质</option>
                 <option value="sky">沉浸环绕声</option>
                 <option value="jyeffect">高清环绕声</option>
-                <option value="jymaster">超清母带</option>
+                <option value="jymaster" selected>超清母带</option>
             </select>
         </div>
         <button type="submit">解析</button>

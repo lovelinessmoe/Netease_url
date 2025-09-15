@@ -9,7 +9,8 @@
     "start": "node main.js",
     "dev": "nodemon main.js",
     "electron:start": "electron .",
-    "electron:build": "electron-builder"
+    "electron:build": "electron-builder",
+    "electron:build:win": "electron-builder -w"
   },
   "keywords": [],
   "author": "",
