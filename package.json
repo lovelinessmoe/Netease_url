@@ -55,15 +55,8 @@
             "name": "netease_url",
             "authors": "lovelinessmoe",
             "setupIcon": "./assets/icon.ico",
-            "loadingGif": "./assets/installer.gif"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "format": "ULFO",
-            "icon": "./assets/icon.ico",
-            "name": "网易云音乐下载器"
+            "loadingGif": "./assets/installer.gif",
+            "noMsi": true
           }
         },
         {
@@ -72,6 +65,14 @@
             "darwin",
             "win32"
           ]
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "format": "ULFO",
+            "icon": "./assets/icon.ico",
+            "name": "网易云音乐下载器"
+          }
         },
         {
           "name": "@electron-forge/maker-deb",
