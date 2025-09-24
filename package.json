@@ -56,7 +56,6 @@
             "name": "netease_url",
             "authors": "lovelinessmoe",
             "setupIcon": "./assets/icon.ico",
-            "loadingGif": "./assets/installer.gif",
             "noMsi": true,
             "remoteReleases": ""
           }
