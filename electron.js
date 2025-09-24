@@ -45,24 +45,37 @@ async function createWindow() {
     // Start Express server first
     await startExpressServer();
 
-    // Create browser window
     mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        }
-    });
+            width: 1200,
+            height: 800,
+            minWidth: 800,
+            minHeight: 600,
+            width: 1200,
+            height: 800,
+            minWidth: 800,
+            minHeight: 600,
+            backgroundColor: '#fff',
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                webSecurity: true,
+                spellcheck: false,
+                enableWebSQL: false,
+                backgroundThrottling: false
+            },
+            icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
+            // titleBarStyle: 'hidden',
+            trafficLightPosition: { x: 10, y: 10 }
+        });
 
     // Load application
     await mainWindow.loadURL('http://127.0.0.1:15001');
     
     // 打开开发者工具
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
     // 注册开发者工具快捷键
     mainWindow.webContents.on('before-input-event', (event, input) => {
-        if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+        if (input.key.toLowerCase() === 'f12') {
             mainWindow.webContents.toggleDevTools();
             event.preventDefault();
         }
@@ -71,101 +84,6 @@ async function createWindow() {
         mainWindow = null;
     });
 }
-
-// async function createWindow() {
-//     try {
-//         // 确保 cookie 文件存在
-//         const cookiePath = path.join(os.homedir(), 'NeteaseCookie.txt');
-//         if (!fs.existsSync(cookiePath)) {
-//             fs.writeFileSync(cookiePath, '', 'utf-8');
-//         }
-
-//         // 先启动 Express 服务器
-//         await startExpressServer();
-
-//         console.log('Creating window...');
-        
-//         // 创建浏览器窗口
-//         mainWindow = new BrowserWindow({
-//             width: 1200,
-//             height: 800,
-//             minWidth: 800,
-//             minHeight: 600,
-//             width: 1200,
-//             height: 800,
-//             minWidth: 800,
-//             minHeight: 600,
-//             backgroundColor: '#fff',
-//             show: false,
-//             webPreferences: {
-//                 nodeIntegration: true,
-//                 contextIsolation: false,
-//                 webSecurity: true,
-//                 spellcheck: false,
-//                 enableWebSQL: false,
-//                 backgroundThrottling: false
-//             },
-//             icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-//             titleBarStyle: 'hiddenInset',
-//             trafficLightPosition: { x: 10, y: 10 }
-//         });
-
-//         console.log('Loading application URL...');
-        
-//         // 等待服务器启动
-//         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-//         // 加载应用
-//         try {
-//             // 使用 http 协议加载页面
-//             await mainWindow.loadURL('http://localhost:15001');
-//             console.log('Page loaded successfully');
-            
-//             // 设置 CSP
-//             mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-//                 callback({
-//                     responseHeaders: {
-//                         ...details.responseHeaders,
-//                         'Content-Security-Policy': ["default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* https://fonts.loli.net"]
-//                     }
-//                 });
-//             });
-//         } catch (error) {
-//             console.error('Failed to load URL:', error);
-//             throw error;
-//         }
-        
-//         // 默认打开开发者工具
-//         mainWindow.webContents.openDevTools();
-
-//         // 注册开发者工具快捷键
-//         mainWindow.webContents.on('before-input-event', (event, input) => {
-//             if (input.control && input.shift && input.key.toLowerCase() === 'i') {
-//                 mainWindow.webContents.toggleDevTools();
-//                 event.preventDefault();
-//             }
-//         });
-
-//         console.log('Window ready to show');
-        
-//         // 优化显示
-//         mainWindow.once('ready-to-show', () => {
-//             console.log('Showing window');
-//             mainWindow.show();
-//             mainWindow.focus();
-//         });
-
-//         // 处理窗口关闭
-//         mainWindow.on('closed', () => {
-//             mainWindow = null;
-//         });
-
-//     } catch (error) {
-//         console.error('创建窗口失败:', error);
-//         dialog.showErrorBox('启动错误', `应用启动失败: ${error.message}`);
-//         app.quit();
-//     }
-// }
 
 app.on('ready', createWindow);
 

@@ -1,14 +1,6 @@
 // 下载相关功能
 async function downloadMusic(ids, level) {
-    const progressContainer = document.getElementById('progressContainer');
-    const progressText = document.getElementById('progressText');
-    const progressFill = document.getElementById('progressFill');
-    
     try {
-        progressContainer.style.display = 'block';
-        progressText.textContent = '开始下载...';
-        progressFill.style.width = '0%';
-
         const response = await fetch(`http://localhost:15001/Song_V1?ids=${encodeURIComponent(ids)}&level=${level}&type=down`);
         if (!response.ok) throw new Error('下载失败');
 
@@ -30,18 +22,9 @@ async function downloadMusic(ids, level) {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-
-        progressText.textContent = '下载完成！';
-        setTimeout(() => {
-            progressContainer.style.display = 'none';
-        }, 2000);
-        
     } catch (error) {
         console.error('下载出错:', error);
-        progressText.textContent = '下载失败，请重试';
-        setTimeout(() => {
-            progressContainer.style.display = 'none';
-        }, 2000);
+        alert('下载失败，请重试');
     }
 }
 
@@ -60,15 +43,9 @@ async function batchDownload(level) {
         return;
     }
 
-    const progressContainer = document.getElementById('progressContainer');
-    const progressText = document.getElementById('progressText');
-    progressContainer.style.display = 'block';
-    progressText.textContent = '准备下载...';
-
     try {
         const response = await fetch(`http://localhost:15001/Song_V1?type=batchDown&level=${level}&selectedIds=${JSON.stringify(selectedIds)}`);
         if (!response.ok) throw new Error('下载失败');
-
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -78,16 +55,10 @@ async function batchDownload(level) {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-
-        progressText.textContent = '下载完成！';
     } catch (error) {
         console.error('批量下载出错:', error);
-        progressText.textContent = '下载失败，请重试';
+        alert('下载失败，请重试');
     }
-
-    setTimeout(() => {
-        progressContainer.style.display = 'none';
-    }, 2000);
 }
 
 // 初始化表单处理
