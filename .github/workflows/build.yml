@@ -16,6 +16,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     
     steps:
     - name: Check out code
@@ -33,10 +34,12 @@ jobs:
     - name: Build for Windows (on Windows runner)
       if: matrix.os == 'windows-latest'
       run: npm run electron:make -- --arch=x64
+      timeout-minutes: 20
 
     - name: Build for macOS (on macOS runner)
       if: matrix.os == 'macos-latest'
       run: npm run electron:make
+      timeout-minutes: 20
 
     - name: Build for Linux (on Ubuntu runner)
       if: matrix.os == 'ubuntu-latest'
@@ -44,17 +47,20 @@ jobs:
         sudo apt update
         sudo apt install -y libarchive-tools rpm
         npm run electron:make
+      timeout-minutes: 20
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: release-${{ matrix.os }}
         path: out/
+        retention-days: 5
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    timeout-minutes: 10
     
     steps:
     - name: Download artifacts

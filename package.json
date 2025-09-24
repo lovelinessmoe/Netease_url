@@ -35,10 +35,11 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "网易云音乐下载器",
-        "executableName": "netease-url",
+        "name": "Netease Music Downloader",
+        "executableName": "netease-music-downloader",
         "icon": "./assets/icon",
         "asar": true,
+        "compression": "maximum",
         "protocols": [
           {
             "name": "Netease URL Protocol",
@@ -63,7 +64,8 @@
           "name": "@electron-forge/maker-zip",
           "platforms": [
             "darwin",
-            "win32"
+            "win32",
+            "linux"
           ]
         },
         {
@@ -71,7 +73,7 @@
           "config": {
             "format": "ULFO",
             "icon": "./assets/icon.ico",
-            "name": "网易云音乐下载器"
+            "name": "Netease Music Downloader"
           }
         },
         {
@@ -83,7 +85,9 @@
                 "Audio",
                 "Network"
               ],
-              "maintainer": "lovelinessmoe"
+              "maintainer": "lovelinessmoe",
+              "name": "netease-music-downloader",
+              "productName": "Netease Music Downloader"
             }
           }
         }

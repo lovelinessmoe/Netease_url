@@ -26,7 +26,9 @@ npm install
 
 3. 配置 cookie：
    在项目根目录创建 cookie.txt 文件，填入网易云音乐的 cookie。
+
 ## 使用方法
+
 ### API 服务模式
 启动 API 服务：
 
@@ -52,7 +54,33 @@ node main.js --mode gui --url [音乐链接] --level [音质]
 - sky: 沉浸环绕声
 - jyeffect: 高清环绕声
 - jymaster: 超清母带
+
+## 构建和打包
+
+### 本地构建
+
+要为当前平台构建应用，运行：
+
+```bash
+npm run electron:make
+```
+
+要为特定平台构建应用，运行：
+
+```bash
+# Windows
+npm run electron:make-win
+
+# 或者使用 Electron Forge 命令
+npx electron-forge make --platform=win32
+```
+
+### 使用 GitHub Actions 构建
+
+该项目配置了 GitHub Actions 工作流，可以自动为 Windows、macOS 和 Linux 构建应用。
+
 ## API 接口说明
+
 ### 获取音乐信息
 - 接口： /Song_V1
 - 方法：GET
@@ -61,6 +89,7 @@ node main.js --mode gui --url [音乐链接] --level [音质]
   - url: 网易云音乐链接
   - level: 音质等级
   - type: 返回类型（text/json/down）
+
 ## 依赖项
 - express
 - axios
@@ -68,6 +97,7 @@ node main.js --mode gui --url [音乐链接] --level [音质]
 - fluent-ffmpeg
 - ffmetadata
 - temp-write
+
 ## 注意事项
 - 需要安装 ffmpeg
 - 需要有效的网易云音乐 cookie
