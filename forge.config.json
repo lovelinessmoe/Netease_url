@@ -1,0 +1,59 @@
+{
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "name": "网易云音乐下载器",
+        "executableName": "netease-url",
+        "icon": "./assets/icon",
+        "asar": true,
+        "protocols": [
+          {
+            "name": "Netease URL Protocol",
+            "schemes": ["netease-url"]
+          }
+        ]
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "netease_url",
+            "authors": "lovelinessmoe",
+            "setupIcon": "./assets/icon.ico",
+            "loadingGif": "./assets/installer.gif"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "format": "ULFO",
+            "icon": "./assets/icon.icns",
+            "name": "网易云音乐下载器"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin",
+            "win32"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {
+            "options": {
+              "icon": "./assets/icon.png",
+              "categories": ["Audio", "Network"],
+              "maintainer": "lovelinessmoe"
+            }
+          }
+        }
+      ],
+      "plugins": [
+        {
+          "name": "@electron-forge/plugin-auto-unpack-natives"
+        }
+      ]
+    }
+  }
+}
