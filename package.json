@@ -57,7 +57,8 @@
             "authors": "lovelinessmoe",
             "setupIcon": "./assets/icon.ico",
             "loadingGif": "./assets/installer.gif",
-            "noMsi": true
+            "noMsi": true,
+            "remoteReleases": ""
           }
         },
         {
@@ -66,7 +67,11 @@
             "darwin",
             "win32",
             "linux"
-          ]
+          ],
+          "config": {
+            "name": "Netease Music Downloader",
+            "executableName": "netease-music-downloader"
+          }
         },
         {
           "name": "@electron-forge/maker-dmg",

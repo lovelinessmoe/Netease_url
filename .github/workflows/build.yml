@@ -28,12 +28,16 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Clean install dependencies
+      run: |
+        npm ci --prefer-offline
+      shell: bash
 
     - name: Build for Windows (on Windows runner)
       if: matrix.os == 'windows-latest'
-      run: npm run electron:make -- --arch=x64
+      run: |
+        npm run electron:make -- --arch=x64
+      shell: cmd
       timeout-minutes: 20
 
     - name: Build for macOS (on macOS runner)
