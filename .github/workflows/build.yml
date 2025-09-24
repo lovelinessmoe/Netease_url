@@ -14,57 +14,57 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        
+
     runs-on: ${{ matrix.os }}
     
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build for Windows (on Windows runner)
-      if: matrix.os == 'windows-latest'
-      run: npm run electron:make
+      - name: Build for Windows (on Windows runner)
+        if: matrix.os == 'windows-latest'
+        run: npm run electron:make
 
-    - name: Build for macOS (on macOS runner)
-      if: matrix.os == 'macos-latest'
-      run: npm run electron:make
+      - name: Build for macOS (on macOS runner)
+        if: matrix.os == 'macos-latest'
+        run: npm run electron:make
 
-    - name: Build for Linux (on Ubuntu runner)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt update
-        sudo apt install -y libarchive-tools rpm
-        npm run electron:make
+      - name: Build for Linux (on Ubuntu runner)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y libarchive-tools rpm
+          npm run electron:make
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-${{ matrix.os }}
-        path: out/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.os }}
+          path: out/
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
-      
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: release-*/out/make/**/*
-        draft: true
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release-*/out/make/**/*
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
