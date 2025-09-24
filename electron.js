@@ -46,27 +46,30 @@ async function createWindow() {
     await startExpressServer();
 
     mainWindow = new BrowserWindow({
-            width: 1200,
-            height: 800,
-            minWidth: 800,
-            minHeight: 600,
-            width: 1200,
-            height: 800,
-            minWidth: 800,
-            minHeight: 600,
-            backgroundColor: '#fff',
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                webSecurity: true,
-                spellcheck: false,
-                enableWebSQL: false,
-                backgroundThrottling: false
-            },
-            icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-            // titleBarStyle: 'hidden',
-            trafficLightPosition: { x: 10, y: 10 }
-        });
+        width: 1200,
+        height: 800,
+        minWidth: 800,
+        minHeight: 600,
+        backgroundColor: '#fff',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: true,
+            spellcheck: false,
+            enableWebSQL: false,
+            backgroundThrottling: false
+        },
+        // 平台自适应图标
+        icon: path.join(
+            __dirname,
+            'assets',
+            process.platform === 'darwin'
+                ? 'icon.icns'
+                : (process.platform === 'win32' ? 'icon.ico' : 'icon.png')
+        ),
+        // titleBarStyle: 'hidden',
+        trafficLightPosition: { x: 10, y: 10 }
+    });
 
     // Load application
     await mainWindow.loadURL('http://127.0.0.1:15001');

@@ -18,7 +18,8 @@ export function configureApp(app) {
         res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
         next();
     });
-    app.use(express.static('public'));
+    // 静态资源目录改为绝对路径，兼容任意入口
+    app.use(express.static(path.join(__dirname, '../public')));
     app.use(express.urlencoded({ extended: true }));
 
     app.get('/', (req, res) => {

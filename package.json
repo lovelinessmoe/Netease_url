@@ -11,6 +11,7 @@
     "electron:start": "electron-forge start",
     "electron:package": "electron-forge package",
     "electron:make": "electron-forge make",
+    "electron:make-win": "electron-forge make --platform=win32",
     "electron:publish": "electron-forge publish"
   },
   "keywords": [],
@@ -61,7 +62,7 @@
           "name": "@electron-forge/maker-dmg",
           "config": {
             "format": "ULFO",
-            "icon": "./assets/icon.icns",
+            "icon": "./assets/icon.ico",
             "name": "网易云音乐下载器"
           }
         },
