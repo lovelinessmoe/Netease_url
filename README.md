@@ -40,6 +40,10 @@
 - 双击打开，将应用拖拽到 Applications 文件夹
 - 首次运行可能需要在"系统偏好设置 > 安全性与隐私"中允许运行
 
+**注意事项：**
+- v1.0.1 及以上版本支持通用二进制（Universal Binary），同时兼容 Intel 和 Apple Silicon (M1/M2/M3) 芯片
+- 如果遇到"不支持此应用程序"的错误，请下载最新版本
+
 **便携版：**
 - `Netease.Music.Downloader-darwin-arm64-1.0.0.zip`（约 121 MB）- 适用于 Apple Silicon (M1/M2/M3) 芯片的便携版
 
