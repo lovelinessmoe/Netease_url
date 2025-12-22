@@ -23,6 +23,7 @@
     "axios": "^1.7.9",
     "commander": "^13.1.0",
     "crypto": "^1.0.1",
+    "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "express": "^4.21.2",
     "ffmetadata": "^1.7.0",

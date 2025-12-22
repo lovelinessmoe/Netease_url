@@ -3,6 +3,7 @@ import { formatSize } from '../utils/formatUtil.js';
 import { MusicService } from '../services/musicService.js';
 import PlaylistService from '../services/playlistService.js';
 import DownloadService from '../services/downloadService.js';
+import { Logger } from '../utils/logger.js';
 import fs from 'fs';
 
 export class MusicController {
@@ -36,7 +37,7 @@ export class MusicController {
                 await this.handleSingleSongRequest(parsedIds, level, cookies, type, res);
             }
         } catch (error) {
-            console.error(error);
+            Logger.error('处理歌曲请求时发生错误:', error);
             res.status(500).json({ status: 500, msg: '服务器错误' });
         }
     }
@@ -50,6 +51,13 @@ export class MusicController {
             const files = [];
             for (const id of selectedIds) {
                 const urlv1 = await MusicService.getUrlV1(id, level, cookies);
+
+                // 如果url为null，跳过这首歌
+                if (!urlv1.data[0].url) {
+                    Logger.warn(`批量下载：歌曲ID ${id} 的URL为null，跳过`);
+                    continue;
+                }
+
                 const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
                 const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
 
@@ -70,16 +78,25 @@ export class MusicController {
                 DownloadService.cleanup(files, tempDir);
             });
         } catch (error) {
-            console.error(error);
+            Logger.error('批量下载失败:', error);
             res.status(500).json({ error: '批量下载失败' });
         }
     }
 
     static async handlePlaylistRequest(songIds, level, cookies, type, res) {
-        const songs = await Promise.all(songIds.map(async (id) => {
+        const songsResults = await Promise.all(songIds.map(async (id) => {
             const urlv1 = await MusicService.getUrlV1(id, level, cookies);
+
+            // 如果url为null，跳过这首歌
+            if (!urlv1.data[0].url) {
+                Logger.warn(`歌曲ID ${id} 的URL为null，跳过`);
+                return null;
+            }
+
             const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
             const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
+
+            Logger.debug(`歌曲URL: ${urlv1.data[0].url}`);
 
             return {
                 id: urlv1.data[0].id,
@@ -92,6 +109,9 @@ export class MusicController {
                 url: urlv1.data[0].url.replace('http://', 'https://')
             };
         }));
+
+        // 过滤掉null的结果
+        const songs = songsResults.filter(song => song !== null);
 
         if (type === 'text') {
             res.send(songs.map(song =>
@@ -140,7 +160,7 @@ export class MusicController {
 
                     fs.unlink(tempFile, () => {});
                 } catch (error) {
-                    console.error('Download error:', error);
+                    Logger.error('下载出错:', error);
                     res.status(500).json({ error: '下载出错' });
                 }
                 break;

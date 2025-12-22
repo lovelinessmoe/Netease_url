@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { configureApp } from './src/app.js';
+import { Logger } from './src/utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,13 +38,18 @@ async function startExpressServer() {
     const expressApp = express();
     configureApp(expressApp);
     return new Promise((resolve) => {
-        server = expressApp.listen(15001, '127.0.0.1', () => resolve());
+        server = expressApp.listen(15001, '127.0.0.1', () => {
+            Logger.info('Express 服务器已启动，监听端口: 15001');
+            resolve();
+        });
     });
 }
 
 async function createWindow() {
     // Start Express server first
     await startExpressServer();
+
+    Logger.info('正在创建主窗口...');
 
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -73,7 +79,8 @@ async function createWindow() {
 
     // Load application
     await mainWindow.loadURL('http://127.0.0.1:15001');
-    
+    Logger.info('主窗口加载完成');
+
     // 打开开发者工具
     // mainWindow.webContents.openDevTools();
     // 注册开发者工具快捷键
@@ -91,12 +98,14 @@ async function createWindow() {
 app.on('ready', createWindow);
 
 app.on('window-all-closed', function () {
+    Logger.info('所有窗口已关闭');
     if (process.platform !== 'darwin') {
         app.quit();
     }
     // Close Express server
     if (server) {
         server.close();
+        Logger.info('Express 服务器已关闭');
     }
 });
 
@@ -108,6 +117,7 @@ app.on('activate', function () {
 
 // Cleanup on quit
 app.on('before-quit', () => {
+    Logger.info('应用即将退出');
     if (server) {
         server.close();
     }
