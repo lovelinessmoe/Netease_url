@@ -38,7 +38,9 @@
         "name": "Netease Music Downloader",
         "executableName": "netease-music-downloader",
         "icon": "./assets/icon",
-        "asar": true,
+        "asar": {
+          "unpack": "*.{node,dll}"
+        },
         "compression": "maximum",
         "osxUniversal": "universal",
         "protocols": [
