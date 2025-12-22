@@ -68,7 +68,7 @@ jobs:
       with:
         files: |
           release-*/out/make/**/*
-          release-windows*/out/**/*.exe
+          release-windows*/out/**/*
           release-macos*/out/**/*.dmg
         draft: true
         generate_release_notes: true

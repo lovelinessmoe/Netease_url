@@ -77,7 +77,7 @@ npx electron-forge make --platform=win32
 
 ### 使用 GitHub Actions 构建
 
-该项目配置了 GitHub Actions 工作流，可以自动为 Windows、macOS 和 Linux 构建应用。
+该项目配置了 GitHub Actions 工作流，可以自动为 Windows 和 macOS 构建应用。
 
 ## API 接口说明
 

@@ -1,0 +1,13 @@
+packages:
+  - '.'
+
+ignoredBuiltDependencies:
+  - aws-sdk
+  - core-js
+  - electron-winstaller
+  - fs-xattr
+  - macos-alias
+  - spawn-sync
+
+onlyBuiltDependencies:
+  - electron-forge
