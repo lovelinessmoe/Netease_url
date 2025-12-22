@@ -15,8 +15,8 @@ jobs:
   build:
     strategy:
       matrix:
-#        os: [macos-latest, windows-latest]
-        os: [windows-latest]
+        os: [macos-latest, windows-latest]
+#        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -70,13 +70,16 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -R
 
+    - name: Prepare release files
+      run: |
+        mkdir -p release-files
+        find . -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.dmg" -o -name "*.deb" \) -exec cp {} release-files/ \;
+        ls -lh release-files/
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          release-windows-latest/out/make/**/*
-          release-macos-latest/out/make/**/*.dmg
-          release-macos-latest/out/make/**/*.zip
+        files: release-files/*
         draft: true
         generate_release_notes: true
       env:
