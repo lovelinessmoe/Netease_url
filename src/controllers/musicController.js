@@ -50,27 +50,38 @@ export class MusicController {
         try {
             const files = [];
             for (const id of selectedIds) {
-                const urlv1 = await MusicService.getUrlV1(id, level, cookies);
+                try {
+                    const urlv1 = await MusicService.getUrlV1(id, level, cookies);
 
-                // 如果url为null，跳过这首歌
-                if (!urlv1.data[0].url) {
-                    Logger.warn(`批量下载：歌曲ID ${id} 的URL为null，跳过`);
+                    // 检查数据完整性
+                    if (!urlv1 || !urlv1.data || !urlv1.data[0] || !urlv1.data[0].url) {
+                        Logger.warn(`批量下载：歌曲ID ${id} 的URL数据不完整，跳过`);
+                        continue;
+                    }
+
+                    const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
+                    const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
+
+                    // 检查歌曲信息完整性
+                    if (!namev1 || !namev1.songs || !namev1.songs[0]) {
+                        Logger.warn(`批量下载：歌曲ID ${id} 的歌曲信息不完整，跳过`);
+                        continue;
+                    }
+
+                    const songData = {
+                        name: namev1.songs[0].name,
+                        ar_name: namev1.songs[0].ar.map(ar => ar.name).join('/'),
+                        al_name: namev1.songs[0].al.name,
+                        pic: namev1.songs[0].al.picUrl,
+                        url: urlv1.data[0].url.replace('http://', 'https://')
+                    };
+
+                    const { tempFile, fileName } = await DownloadService.downloadSingleSong(songData, lyricv1, namev1);
+                    files.push({ path: tempFile, name: fileName });
+                } catch (error) {
+                    Logger.error(`批量下载：处理歌曲ID ${id} 时发生错误:`, error);
                     continue;
                 }
-
-                const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
-                const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
-
-                const songData = {
-                    name: namev1.songs[0].name,
-                    ar_name: namev1.songs[0].ar.map(ar => ar.name).join('/'),
-                    al_name: namev1.songs[0].al.name,
-                    pic: namev1.songs[0].al.picUrl,
-                    url: urlv1.data[0].url.replace('http://', 'https://')
-                };
-
-                const { tempFile, fileName } = await DownloadService.downloadSingleSong(songData, lyricv1, namev1);
-                files.push({ path: tempFile, name: fileName });
             }
 
             const { zipFile, tempDir } = await DownloadService.createBatchDownloadZip(files);
@@ -85,29 +96,40 @@ export class MusicController {
 
     static async handlePlaylistRequest(songIds, level, cookies, type, res) {
         const songsResults = await Promise.all(songIds.map(async (id) => {
-            const urlv1 = await MusicService.getUrlV1(id, level, cookies);
+            try {
+                const urlv1 = await MusicService.getUrlV1(id, level, cookies);
 
-            // 如果url为null，跳过这首歌
-            if (!urlv1.data[0].url) {
-                Logger.warn(`歌曲ID ${id} 的URL为null，跳过`);
+                // 检查数据完整性
+                if (!urlv1 || !urlv1.data || !urlv1.data[0] || !urlv1.data[0].url) {
+                    Logger.warn(`歌曲ID ${id} 的URL数据不完整，跳过`);
+                    return null;
+                }
+
+                const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
+                const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
+
+                // 检查歌曲信息完整性
+                if (!namev1 || !namev1.songs || !namev1.songs[0]) {
+                    Logger.warn(`歌曲ID ${id} 的歌曲信息不完整，跳过`);
+                    return null;
+                }
+
+                Logger.debug(`歌曲URL: ${urlv1.data[0].url}`);
+
+                return {
+                    id: urlv1.data[0].id,
+                    name: namev1.songs[0].name,
+                    pic: namev1.songs[0].al.picUrl,
+                    ar_name: namev1.songs[0].ar.map(ar => ar.name).join('/'),
+                    al_name: namev1.songs[0].al.name,
+                    level: MusicService.getMusicLevel(urlv1.data[0].level),
+                    size: formatSize(urlv1.data[0].size),
+                    url: urlv1.data[0].url.replace('http://', 'https://')
+                };
+            } catch (error) {
+                Logger.error(`处理歌曲ID ${id} 时发生错误:`, error);
                 return null;
             }
-
-            const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
-            const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
-
-            Logger.debug(`歌曲URL: ${urlv1.data[0].url}`);
-
-            return {
-                id: urlv1.data[0].id,
-                name: namev1.songs[0].name,
-                pic: namev1.songs[0].al.picUrl,
-                ar_name: namev1.songs[0].ar.map(ar => ar.name).join('/'),
-                al_name: namev1.songs[0].al.name,
-                level: MusicService.getMusicLevel(urlv1.data[0].level),
-                size: formatSize(urlv1.data[0].size),
-                url: urlv1.data[0].url.replace('http://', 'https://')
-            };
         }));
 
         // 过滤掉null的结果
@@ -127,10 +149,19 @@ export class MusicController {
 
     static async handleSingleSongRequest(id, level, cookies, type, res) {
         const urlv1 = await MusicService.getUrlV1(id, level, cookies);
+
+        // 检查数据完整性
+        if (!urlv1 || !urlv1.data || !urlv1.data[0] || !urlv1.data[0].url) {
+            Logger.warn(`单曲：歌曲ID ${id} 的URL数据不完整`);
+            return res.status(400).json({ status: 400, msg: '信息获取不完整！' });
+        }
+
         const namev1 = await MusicService.getNameV1(urlv1.data[0].id);
         const lyricv1 = await MusicService.getLyricV1(urlv1.data[0].id, cookies);
 
-        if (!urlv1.data[0].url || !namev1.songs) {
+        // 检查歌曲信息完整性
+        if (!namev1 || !namev1.songs || !namev1.songs[0]) {
+            Logger.warn(`单曲：歌曲ID ${id} 的歌曲信息不完整`);
             return res.status(400).json({ status: 400, msg: '信息获取不完整！' });
         }
 
